@@ -17,4 +17,7 @@ module.exports = {
     slider: require('./slider'),
     trrs: require('./trrs'),
     via: require('./via'),
+    promicro_pretty: require('./promicro_pretty'),
+    pcm12: require('./pcm12'),
+    b3u1000p: require('./b3u1000p'),
 }
