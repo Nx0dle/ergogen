@@ -42,11 +42,14 @@ const traverse = exports.traverse = (config, root, breadcrumbs, op) => {
         }
         return result
     } else if (a.type(config)() == 'array') {
+        // needed so that arrays can set output the same way as objects within ops
+        const dummy = {}
         const result = []
         let index = 0
         for (const val of config) {
             breadcrumbs.push(`[${index}]`)
-            result[index] = traverse(val, root, breadcrumbs, op)
+            op(dummy, 'dummykey', traverse(val, root, breadcrumbs, op), root, breadcrumbs)
+            result[index] = dummy.dummykey
             breadcrumbs.pop()
             index++
         }
@@ -66,11 +69,12 @@ exports.inherit = config => traverse(config, config, [], (target, key, val, root
         const list = [val]
         while (candidates.length) {
             const path = candidates.shift()
-            const other = u.deepcopy(u.deep(root, path))
+            const other = u.deep(root, path)
             a.assert(other, `"${path}" (reached from "${breadcrumbs.join('.')}.$extends") does not name a valid inheritance target!`)
             let parents = other.$extends || []
             if (a.type(parents)() !== 'array') parents = [parents]
             candidates = candidates.concat(parents)
+            a.assert(!list.includes(other), `"${path}" (reached from "${breadcrumbs.join('.')}.$extends") leads to a circular dependency!`)
             list.unshift(other)
         }
         val = extend.apply(null, list)
